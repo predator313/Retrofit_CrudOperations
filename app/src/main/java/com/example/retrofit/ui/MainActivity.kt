@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.retrofit.adapter.MainAdapter
@@ -20,6 +21,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.HttpRetryException
+import kotlin.math.log
 
 class MainActivity : AppCompatActivity() {
     private val TAG="coroutine"
@@ -61,7 +63,10 @@ class MainActivity : AppCompatActivity() {
 //            binding.progress.visibility=View.GONE
 //        }
 //        postDataToServer()
-        uploadDataToServerViaUrl()
+//        uploadDataToServerViaUrl()
+//        putDataToServer()
+//        patchUser()
+        deletePost()
         
 
     }
@@ -116,6 +121,82 @@ class MainActivity : AppCompatActivity() {
                     Snackbar.make(binding.root,"${response.code()}",Snackbar.LENGTH_LONG).show()
                 }
 
+            }
+        }
+    }
+    private fun putDataToServer(){
+        lifecycleScope.launch(Dispatchers.IO){
+            val response=try {
+                val user=User("Put body",null,null,23)
+                RetrofitInstance.api.putPost(23,user)
+            }
+            catch (e:IOException){
+                Log.e(TAG,"Please check the internet connection")
+                return@launch
+            }
+            catch (e:HttpException){
+                Log.e(TAG,"http exception ${e.message()}")
+                return@launch
+            }
+            if(response.isSuccessful && response.body()!=null){
+                //means we got the correct response
+                withContext(Dispatchers.Main){
+                    Snackbar.make(binding.root,"${response.code()}",Snackbar.LENGTH_LONG).show()
+                    delay(5000L)
+                    Snackbar.make(binding.root,"${response.body()}",Snackbar.LENGTH_LONG).show()
+                }
+            }
+
+        }
+    }
+    private fun patchUser(){
+        //this is the network call so it should be executed in background
+        lifecycleScope.launch(Dispatchers.IO){
+            //the best way to get the response that it should be in try catch block
+            val response=try {
+                val user=User("patch request",null,null,23)
+                RetrofitInstance.api.patchPost(23,user)
+            }
+            catch (e:IOException){
+                Log.e(TAG,"please check your internet connection")
+                return@launch
+            }
+            catch (e:HttpException){
+                Log.e(TAG,"${e.message()}")
+                return@launch
+            }
+            if(response.isSuccessful && response.body()!=null){
+                //means we got the correct response
+                //success
+                withContext(Dispatchers.Main){
+                    //here we show the snack bar
+                    Snackbar.make(binding.root,"${response.code()}",Snackbar.LENGTH_LONG).show()
+                    delay(5000L)
+                    Snackbar.make(binding.root,"${response.body()}",Snackbar.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+    private fun deletePost(){
+        lifecycleScope.launch(Dispatchers.IO){
+            val response=try {
+                RetrofitInstance.api.deletePost(23)
+            }catch (e:IOException){
+                Log.e(TAG,"please check your internet connection")
+                return@launch
+            }
+            catch (e:HttpException){
+                Log.e(TAG,"${e.message()}")
+                return@launch
+            }
+            if(response.isSuccessful && response.body()!=null){
+                withContext(Dispatchers.Main){
+                    Snackbar.make(binding.root,"${response.code()}",Snackbar.LENGTH_LONG).show()
+                    delay(5000L)
+                    Snackbar.make(binding.root,"${response.code()}",Snackbar.LENGTH_LONG).show()
+
+
+                }
             }
         }
     }
